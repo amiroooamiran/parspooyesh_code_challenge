@@ -1,17 +1,14 @@
 import random
 import time
 
-def locations():
-    # list of the location
-    places = ["city park", "downtown", "suburb", "Riverside", "airport"]
-    citys = ["Tehran", "Abadan", "Tabriz", "Mashhad", "Isfahan", "Shiraz"]
-    # data location generator
-    while True:
+class Location:
+    @staticmethod
+    def locations():
+        # list of the locations
+        places = ["city park", "downtown", "suburb", "Riverside", "airport"]
+        citys = ["Tehran", "Abadan", "Tabriz", "Mashhad", "Isfahan", "Shiraz"]
+        # Generate random location data
         rand_city = random.choice(citys)
         rand_place = random.choice(places)
-        print(rand_city, rand_place)
-        time.sleep(1)
 
-locations()
-        
-
+        return rand_city, rand_place
