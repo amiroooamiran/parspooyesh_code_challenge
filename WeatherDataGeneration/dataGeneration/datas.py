@@ -38,12 +38,13 @@ while True:
             "timestamp": _time,
             "temperature": r_temp,
             "humidity": rand_humidity,
-            "wind speed": rand_wind_speed
+            "wind speed": rand_wind_speed,
+            "temperature recorded": temps[location]
         }
 
         json_data = json.dumps(data, indent=5)
         print(json_data)
-        print(f'Temperatures recorded for {location} so far:', temps[location])
+        
         print('\n ---------------------------------------------- \n')
     
     print('##############################################')
