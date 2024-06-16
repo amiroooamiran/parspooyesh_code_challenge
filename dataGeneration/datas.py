@@ -55,7 +55,6 @@ class DataSet:
                     }
 
                     json_data = json.dumps(data, indent=5)
-                    print(json_data)
                     
                     channel.basic_publish(exchange='',
                                           routing_key='sensor_data',
