@@ -1,0 +1,22 @@
+version: '3'
+services:
+  rabbitmq:
+    image: "rabbitmq:3.10-management"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - MyNetwork  
+
+  generator:
+    build: .
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: rabbitmq
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - MyNetwork  
+networks:
+  MyNetwork:
