@@ -9,7 +9,8 @@ services:
       - MyNetwork  
 
   generator:
-    build: .
+    build:
+      context: ./dataGeneration/
     depends_on:
       - rabbitmq
     environment:
@@ -18,5 +19,18 @@ services:
       - .:/usr/src/app
     networks:
       - MyNetwork  
+  
+  analyzer:
+      build:
+        context: ./dataAnalyzer/
+      depends_on:
+        - rabbitmq
+      environment:
+        RABBITMQ_HOST: rabbitmq
+      volumes:
+        - .:/usr/src/app
+      networks:
+        - MyNetwork  
+
 networks:
   MyNetwork:
