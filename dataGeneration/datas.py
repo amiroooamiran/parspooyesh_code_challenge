@@ -19,16 +19,15 @@ temps = {location: [] for location in locations}
 class DataSet:
     @staticmethod
     def datas():
-        for x in range(1, 100):
+        for _ in range(1, 10):
             try:
                 connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
                 channel = connection.channel()
                 channel.queue_declare(queue='sensor_data')
+                break
             except Exception as e:
                 print(e)
                 time.sleep(1)
-            else:
-                break
 
         try:
             while True:
@@ -55,7 +54,6 @@ class DataSet:
                     }
 
                     json_data = json.dumps(data, indent=5)
-                    
                     channel.basic_publish(exchange='',
                                           routing_key='sensor_data',
                                           body=json_data)
