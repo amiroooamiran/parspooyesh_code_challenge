@@ -1,36 +1,28 @@
 import pika
-import os
-import time
 import json
+import time
 
 def callback(ch, method, properties, body):
-    try:
-        json_str = body.decode("utf-8")
-        json_obj = json.loads(json_str)
-        print(json.dumps(json_obj, indent=4))
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON: {e}")
+    data = json.loads(body)
+    print(f"Received data:\n{json.dumps(data, indent=5)}")
 
 def main():
-    rabbitmq_host = os.getenv('RABBITMQ_HOST', 'rabbitmq')
-    for i in range(1, 100):
+    connection = None
+    while True:
         try:
-            connection = pika.BlockingConnection(pika.ConnectionParameters(rabbitmq_host))
+            connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
             channel = connection.channel()
             channel.queue_declare(queue='sensor_data')
+
+            channel.basic_consume(queue='sensor_data', on_message_callback=callback, auto_ack=True)
+
+            print('Waiting for messages. To exit press CTRL+C')
+            channel.start_consuming()
         except Exception as e:
-            print(f"Connection attempt {i} failed: {e}")
-            time.sleep(1)
-        else:
-            break
-    else:
-        print("Failed to connect to RabbitMQ after 100 attempts")
-        return
-
-    channel.basic_consume(queue='sensor_data', on_message_callback=callback, auto_ack=True)
-
-    print(' [*] Waiting for messages. To exit press CTRL+C')
-    channel.start_consuming()
+            print(f"Error: {e}")
+        finally:
+            if connection and connection.is_open:
+                connection.close()
 
 if __name__ == "__main__":
     main()
