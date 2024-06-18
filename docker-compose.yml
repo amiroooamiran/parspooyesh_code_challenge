@@ -16,7 +16,7 @@ services:
     environment:
       RABBITMQ_HOST: rabbitmq
     volumes:
-      - .:/usr/src/app
+      - ./dataGeneration:/generation
     networks:
       - MyNetwork  
   
@@ -28,7 +28,7 @@ services:
       environment:
         RABBITMQ_HOST: rabbitmq
       volumes:
-        - .:/usr/src/app
+        - ./dataAnalyzer:/analyzer
       networks:
         - MyNetwork  
 
