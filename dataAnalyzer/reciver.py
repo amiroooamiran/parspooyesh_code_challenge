@@ -4,13 +4,22 @@ import time
 
 # Import the necessary modules
 from tempAnalyzer import filter_temp_check
+from dataStorage.storage import MongoDBStorage
+from dataStorage.retry_helper import save_data_with_retry
+
+mongo_storage = MongoDBStorage()
 
 def callback(ch, method, properties, body):
-    data = json.loads(body)
-    print(data)
-    # Apply the filter
-    filter_temp_check(data)
 
+    data = json.loads(body)
+    # Apply the filter
+    filter_data = filter_temp_check(data)
+    
+    try:
+        save_data_with_retry(filter_data)
+    except Exception as e:
+        print(f"Error saving data with retry: {e}")
+     
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 def main():
@@ -29,5 +38,6 @@ def main():
         except Exception as e:
             print(f"Error: {e}")
             time.sleep(1)
+
 if __name__ == "__main__":
     main()
