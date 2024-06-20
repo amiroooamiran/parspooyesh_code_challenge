@@ -21,9 +21,10 @@ class DataSaver:
 
     @staticmethod
     def save_data_to_file(data):
-        with open('failed_saves.json', 'a') as f:
-            json.dump(data, f)
-            f.write('\n')
+        if data:
+            with open('failed_saves.json', 'a') as f:
+                json.dump(data, f)
+                f.write('\n')
 
     @staticmethod
     def save_data_with_retry(data):
