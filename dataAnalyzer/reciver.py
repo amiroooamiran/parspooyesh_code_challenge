@@ -5,18 +5,21 @@ import time
 # Import the necessary modules
 from tempAnalyzer import filter_temp_check
 from dataStorage.storage import MongoDBStorage
-from dataStorage.retry_helper import save_data_with_retry
+from dataStorage.retry_helper import DataSaver
 
 mongo_storage = MongoDBStorage()
 
 def callback(ch, method, properties, body):
-
     data = json.loads(body)
     # Apply the filter
     filter_data = filter_temp_check(data)
     
     try:
-        save_data_with_retry(filter_data)
+        # Ensure filter_data is a dictionary
+        if isinstance(filter_data, str):
+            filter_data = json.loads(filter_data)
+        print(type(filter_data))
+        DataSaver.save_data_with_retry(filter_data)  # Pass filter_data directly as a dictionary
     except Exception as e:
         print(f"Error saving data with retry: {e}")
      

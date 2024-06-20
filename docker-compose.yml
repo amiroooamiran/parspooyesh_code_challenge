@@ -6,7 +6,9 @@ services:
       - "5672:5672"
       - "15672:15672"
     networks:
-      - MyNetwork  
+      - my_network
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "A_secure_cookie_with_20_chars"
 
   generator:
     build:
@@ -18,19 +20,37 @@ services:
     volumes:
       - ./dataGeneration:/generation
     networks:
-      - MyNetwork  
-  
+      - my_network
+
   analyzer:
-      build:
-        context: ./dataAnalyzer/
-      depends_on:
-        - rabbitmq
-      environment:
-        RABBITMQ_HOST: rabbitmq
-      volumes:
-        - ./dataAnalyzer:/analyzer
-      networks:
-        - MyNetwork  
+    build:
+      context: ./dataAnalyzer/
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      MONGO_URI: mongodb://mongodb:27017
+    volumes:
+      - ./dataAnalyzer:/analyzer
+    networks:
+      - my_network
+
+  mongodb:
+    image: "mongo:latest"
+    ports:
+      - "27017:27017"
+    networks:
+      - my_network
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
 
 networks:
-  MyNetwork:
+  my_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
