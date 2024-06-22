@@ -22,7 +22,7 @@ class DataSaver:
     @staticmethod
     def save_data_to_file(data):
         if data:
-            with open('failed_saves.json', 'a') as f:
+            with open('../logs/failed_saves.json', 'a') as f:
                 json.dump(data, f)
                 f.write('\n')
 

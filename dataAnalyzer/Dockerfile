@@ -5,4 +5,4 @@ COPY . /analyzer/
 
 RUN pip install -r requirements.txt
 
-CMD ["python", "./reciver.py"]
+CMD ["python", "./main.py"]
