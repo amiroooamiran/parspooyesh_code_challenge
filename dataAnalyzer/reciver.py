@@ -2,32 +2,32 @@ import pika
 import json
 import time
 
-# Import the necessary modules
-from tempAnalyzer import filter_temp_check
 from dataStorage.storage import MongoDBStorage
 from dataStorage.retry_helper import DataSaver
-from collections.abc import MutableMapping  # Updated import
 
 mongo_storage = MongoDBStorage()
 
+def _callback(data):
+    outputData = data.copy()
+    anomalies = {}
+    # cleaning / validation
+    if data['temperature'] > 60:
+        return  # ignore
+    # anomalies
+    if data['temperature'] < 0:
+        anomalies["temperature_drop"] = True
+    if data['wind speed'] > 30:
+        anomalies["high_wind_speed"] = True
+    outputData["anomalies"] = anomalies
+    DataSaver.save_data_with_retry(outputData)
+    # print("Data not passd for more information chake logs.")
+
 def callback(ch, method, properties, body):
-    data = json.loads(body)
-    # Apply the filter
-    filter_data = filter_temp_check(data)
-    
+    data = json.loads(body)    
     try:
-        # Ensure filter_data is a dictionary or a valid type for MongoDB
-        if isinstance(filter_data, str):
-            filter_data = json.loads(filter_data)
-        
-        # Check if filter_data is a valid type for MongoDB
-        if not isinstance(filter_data, (dict, MutableMapping)):
-            raise ValueError("Data must be a dictionary or a type that inherits from collections.abc.MutableMapping")
-        
-        DataSaver.save_data_with_retry(filter_data)
+        _callback(data)
     except Exception as e:
         print(f"Error saving data with retry: {e}")
-     
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 def main():
