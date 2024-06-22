@@ -44,6 +44,20 @@ services:
       - my_network
     volumes:
       - mongo-data:/data/db
+  
+  api:
+    build:
+      context: ./APIs/ 
+    depends_on:
+      - mongodb
+    volumes:
+      - ./APIs:/api    
+    networks:
+      - my_network
+    ports:
+      - "8000:8000" 
+    environment:
+      MONGO_URI: mongodb://mongodb:27017
 
 volumes:
   mongo-data:
