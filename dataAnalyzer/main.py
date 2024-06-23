@@ -2,9 +2,11 @@ import pika
 import json
 import time
 
+# classifide
 from dataStorage.storage import MongoDBStorage
 from dataStorage.retry_helper import DataSaver
 
+# Not classifide
 from dataStorage.redis.save_average import update_location_stats, \
     initialize_location_stats, redis_exists
 
@@ -35,7 +37,7 @@ def _callback(data):
     average = cal_average_temp_for_location(city)
 
     # Humidity average
-    if not redis_exists(f"humidity_stats:{city}"):
+    if not redis_exists_humidity(f"humidity_stats:{city}"):
         initialize_location_stats_humidity(city)
         
     update_location_stats_humidity(city, humidity)
