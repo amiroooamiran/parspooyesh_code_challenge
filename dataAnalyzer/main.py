@@ -14,6 +14,8 @@ from dataStorage.redis.save_average_humidity import update_location_stats_humidi
 from filters.averages.temperature import cal_average_temp_for_location
 from filters.averages.humidity import cal_average_humidity_for_location
 
+from filters.anomalies.temperature import is_chake_temperature_drop
+
 mongo_storage = MongoDBStorage()
 
 def _callback(data):
@@ -47,13 +49,22 @@ def _callback(data):
     # cleaning / validation
     if data['temperature'] > 60:
         return  # ignore
+
     # anomalies
-    if data['temperature'] < 0:
+    min_const = 10
+    max_const = 10
+
+    if is_chake_temperature_drop(temp, min_const, max_const):
         anomalies["temperature_drop"] = True
+    else:
+        anomalies["temperature_drop"] = False
+        
     if data['wind speed'] > 30:
         anomalies["high_wind_speed"] = True
+    else:
+        anomalies["high_wind_speed"] = False
 
-    outputData["averages"] = averages # reverce in down 
+    outputData["averages"] = averages
     outputData["anomalies"] = anomalies
 
     try:
