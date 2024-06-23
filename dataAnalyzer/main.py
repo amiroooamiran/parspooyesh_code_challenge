@@ -5,8 +5,14 @@ import time
 from dataStorage.storage import MongoDBStorage
 from dataStorage.retry_helper import DataSaver
 
-from dataStorage.redis.save_average import update_location_stats, initialize_location_stats, redis_exists
+from dataStorage.redis.save_average import update_location_stats, \
+    initialize_location_stats, redis_exists
+
+from dataStorage.redis.save_average_humidity import update_location_stats_humidity,\
+    initialize_location_stats_humidity, redis_exists_humidity
+
 from filters.averages.temperature import cal_average_temp_for_location
+from filters.averages.humidity import cal_average_humidity_for_location
 
 mongo_storage = MongoDBStorage()
 
@@ -17,14 +23,25 @@ def _callback(data):
 
     city = outputData["location"]
     temp = outputData["temperature"]
+    humidity = outputData["humidity"]
 
+    # Temperature average
     if not redis_exists(f"temp_stats:{city}"):
         initialize_location_stats(city)
+
     update_location_stats(city, temp)
     average = cal_average_temp_for_location(city)
 
+    # Humidity average
+    if not redis_exists(f"humidity_stats:{city}"):
+        initialize_location_stats_humidity(city)
+        
+    update_location_stats_humidity(city, humidity)
+    h_average = cal_average_humidity_for_location(city)
+
+    # add [Humidity, Temperature] in averages
     averages["temperature"] = average
-    print(averages)
+    averages["humidity"] = h_average
 
     anomalies = {}
     # cleaning / validation
