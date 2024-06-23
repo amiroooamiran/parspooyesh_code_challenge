@@ -21,29 +21,6 @@ services:
       - ./dataGeneration:/generation
     networks:
       - my_network
-
-  analyzer:
-    build:
-      context: ./dataAnalyzer/
-    depends_on:
-      - rabbitmq
-      - mongodb
-    environment:
-      RABBITMQ_HOST: rabbitmq
-      MONGO_URI: mongodb://mongodb:27017
-    volumes:
-      - ./dataAnalyzer:/analyzer
-    networks:
-      - my_network
-
-  mongodb:
-    image: "mongo:latest"
-    ports:
-      - "27017:27017"
-    networks:
-      - my_network
-    volumes:
-      - mongo-data:/data/db
   
   api:
     build:
@@ -59,8 +36,42 @@ services:
     environment:
       MONGO_URI: mongodb://mongodb:27017
 
+  analyzer:
+    build:
+      context: ./dataAnalyzer/
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      MONGO_URI: mongodb://mongodb:27017
+      REDIS_HOST: redis
+    volumes:
+      - ./dataAnalyzer:/analyzer
+    networks:
+      - my_network
+
+  mongodb:
+    image: "mongo:latest"
+    ports:
+      - "27017:27017"
+    networks:
+      - my_network
+    volumes:
+      - mongo-data:/data/db
+  
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+    networks:
+      - my_network
+    volumes:
+      - redis-data:/data/db
+
 volumes:
   mongo-data:
+  redis-data:
 
 networks:
   my_network:
