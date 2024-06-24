@@ -1,24 +1,17 @@
 import pika
 import json
 import time
+import logging
 
-# classifide
 from dataStorage.storage import MongoDBStorage
 from dataStorage.retry_helper import DataSaver
-
-# Not classifide
-from dataStorage.redis.save_average import update_location_stats, \
-    initialize_location_stats, redis_exists
-
-from dataStorage.redis.save_average_humidity import update_location_stats_humidity,\
-    initialize_location_stats_humidity, redis_exists_humidity
-
-from filters.averages.temperature import cal_average_temp_for_location
-from filters.averages.humidity import cal_average_humidity_for_location
-
+from dataStorage.redis.save_average import SaveAverage
+from filters.averages.calculate import Averages
 from filters.anomalies.temperature import is_chake_temperature_drop
 
 mongo_storage = MongoDBStorage()
+
+logging.basicConfig(level=logging.INFO)
 
 def _callback(data):
     outputData = data.copy()
@@ -30,18 +23,18 @@ def _callback(data):
     humidity = outputData["humidity"]
 
     # Temperature average
-    if not redis_exists(f"temp_stats:{city}"):
-        initialize_location_stats(city)
+    if not SaveAverage.redis_exists(f"temp_stats:{city}"):
+        SaveAverage.initialize_location_stats(city)
 
-    update_location_stats(city, temp)
-    average = cal_average_temp_for_location(city)
+    SaveAverage.update_location_stats(city, temp)
+    average = Averages.cal_average_temp_for_location(city)
 
     # Humidity average
-    if not redis_exists_humidity(f"humidity_stats:{city}"):
-        initialize_location_stats_humidity(city)
+    if not SaveAverage.redis_exists_humidity(f"humidity_stats:{city}"):
+        SaveAverage.initialize_location_stats_humidity(city)
         
-    update_location_stats_humidity(city, humidity)
-    h_average = cal_average_humidity_for_location(city)
+    SaveAverage.update_location_stats_humidity(city, humidity)
+    h_average = Averages.cal_average_humidity_for_location(city)
 
     # add [Humidity, Temperature] in averages
     averages["temperature"] = average
@@ -50,6 +43,7 @@ def _callback(data):
     anomalies = {}
     # cleaning / validation
     if data['temperature'] > 60:
+        logging.warning(f"Temperature {data['temperature']} is too high, ignoring data")
         return  # ignore
 
     # anomalies
@@ -72,14 +66,14 @@ def _callback(data):
     try:
         DataSaver.save_data_with_retry(outputData)
     except Exception as e:
-        print(f"Error saving data with retry: {e}")
+        logging.error(f"Error saving data with retry: {e}")
 
 def callback(ch, method, properties, body):
     data = json.loads(body)
     try:
         _callback(data)
     except Exception as e:
-        print(f"Error processing message: {e}")
+        logging.error(f"Error processing message: {e}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 def main():
@@ -92,10 +86,12 @@ def main():
 
             channel.basic_consume(queue='sensor_data', on_message_callback=callback, auto_ack=False)
 
-            print('Waiting for messages. To exit press CTRL+C')
+            logging.info('Waiting for messages. To exit press CTRL+C')
             channel.start_consuming()
         except Exception as e:
-            print(f"Error: {e}")
+            logging.error(f"Error: {e}")
+            if connection:
+                connection.close()
             time.sleep(1)
 
 if __name__ == "__main__":
