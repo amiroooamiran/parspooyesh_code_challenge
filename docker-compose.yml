@@ -22,13 +22,13 @@ services:
     networks:
       - my_network
   
-  api:
+  webservice:
     build:
-      context: ./APIs/ 
+      context: ./webservice/ 
     depends_on:
       - mongodb
     volumes:
-      - ./APIs:/api    
+      - ./webservice:/webservice    
     networks:
       - my_network
     ports:
