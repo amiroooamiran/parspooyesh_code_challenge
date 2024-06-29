@@ -18,17 +18,17 @@ services:
     environment:
       RABBITMQ_HOST: rabbitmq
     volumes:
-      - ./dataGenerator:/generation
+      - ./dataGenerator:/generator
     networks:
       - my_network
   
   webservice:
     build:
-      context: ./webservice/ 
+      context: ./webService/ 
     depends_on:
       - mongodb
     volumes:
-      - ./webservice:/webservice    
+      - ./webService:/webservice    
     networks:
       - my_network
     ports:
