@@ -1,5 +1,6 @@
 import random
 
+
 class Humidity:
     @staticmethod
     def humidity():

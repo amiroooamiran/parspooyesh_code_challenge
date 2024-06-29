@@ -5,6 +5,7 @@ from .storage import MongoDBStorage
 
 mongo_storage = MongoDBStorage()
 
+
 class DataSaver:
     @staticmethod
     def retry(operation, retries=3, delay=1, fallback=None):
@@ -22,13 +23,15 @@ class DataSaver:
     @staticmethod
     def save_data_to_file(data):
         if data:
-            with open('../logs/failed_saves.json', 'a') as f:
+            with open("../logs/failed_saves.json", "a") as f:
                 json.dump(data, f)
-                f.write('\n')
+                f.write("\n")
 
     @staticmethod
     def save_data_with_retry(data):
         def fallback():
             DataSaver.save_data_to_file(data)
-        
-        DataSaver.retry(lambda: mongo_storage.save_data(data), retries=3, delay=1, fallback=fallback)
+
+        DataSaver.retry(
+            lambda: mongo_storage.save_data(data), retries=3, delay=1, fallback=fallback
+        )

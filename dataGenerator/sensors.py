@@ -1,5 +1,6 @@
 import random
 
+
 class Sensor:
     @staticmethod
     def sensor():

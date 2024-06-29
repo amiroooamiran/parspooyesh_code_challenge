@@ -1,5 +1,6 @@
 import random
 
+
 class WindSpeed:
     def windspeed():
         rand_float = random.uniform(1.1, 46.5)

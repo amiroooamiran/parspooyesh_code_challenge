@@ -16,24 +16,31 @@ locations = Location.locations()
 base_temperatures = {location: random.randint(35, 65) for location in locations}
 temps = {location: [] for location in locations}
 
+
 class DataSet:
     @staticmethod
     def setup_queue():
         try:
-            with pika.BlockingConnection(pika.ConnectionParameters('rabbitmq')) as connection:
+            with pika.BlockingConnection(
+                pika.ConnectionParameters("rabbitmq")
+            ) as connection:
                 channel = connection.channel()
 
                 # Declare DLX exchange and queue
-                channel.exchange_declare(exchange='dlx_exchange', exchange_type='direct')
-                channel.queue_declare(queue='dlx_queue')
-                channel.queue_bind(exchange='dlx_exchange', queue='dlx_queue', routing_key='dlx')
+                channel.exchange_declare(
+                    exchange="dlx_exchange", exchange_type="direct"
+                )
+                channel.queue_declare(queue="dlx_queue")
+                channel.queue_bind(
+                    exchange="dlx_exchange", queue="dlx_queue", routing_key="dlx"
+                )
 
                 # Declare sensor_data queue with DLX configuration
                 args = {
-                    'x-dead-letter-exchange': 'dlx_exchange',
-                    'x-dead-letter-routing-key': 'dlx'
+                    "x-dead-letter-exchange": "dlx_exchange",
+                    "x-dead-letter-routing-key": "dlx",
                 }
-                channel.queue_declare(queue='sensor_data', durable=True, arguments=args)
+                channel.queue_declare(queue="sensor_data", durable=True, arguments=args)
         except Exception as e:
             print(f"Error setting up queues: {e}")
 
@@ -42,11 +49,13 @@ class DataSet:
         connection = None
         for _ in range(1, 10):
             try:
-                connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
+                connection = pika.BlockingConnection(
+                    pika.ConnectionParameters("rabbitmq")
+                )
                 channel = connection.channel()
 
                 channel.confirm_delivery()
-                channel.queue_declare(queue='sensor_data')
+                channel.queue_declare(queue="sensor_data")
                 break
             except Exception as e:
                 print(f"Error connecting to RabbitMQ: {e}")
@@ -66,7 +75,7 @@ class DataSet:
 
                     temps[location].append(r_temp)
                     time_stamp = datetime.datetime.now()
-                    _time = time_stamp.strftime('%Y-%m-%d %H:%M:%S')
+                    _time = time_stamp.strftime("%Y-%m-%d %H:%M:%S")
                     rand_humidity = Humidity.humidity()
                     rand_wind_speed = WindSpeed.windspeed()
 
@@ -80,19 +89,22 @@ class DataSet:
                     }
 
                     json_data = json.dumps(data, indent=5)
-                    channel.basic_publish(exchange='',
-                                          routing_key='sensor_data',
-                                          body=json_data,
-                                          properties=pika.BasicProperties(
-                                              delivery_mode=2,
-                                          ))
+                    channel.basic_publish(
+                        exchange="",
+                        routing_key="sensor_data",
+                        body=json_data,
+                        properties=pika.BasicProperties(
+                            delivery_mode=2,
+                        ),
+                    )
 
                 time.sleep(10)
         except KeyboardInterrupt:
             print("Interrupted")
         except Exception as e:
             print(f"Error during data processing: {e}")
-            
+
+
 if __name__ == "__main__":
     DataSet.setup_queue()
     DataSet.datas()
