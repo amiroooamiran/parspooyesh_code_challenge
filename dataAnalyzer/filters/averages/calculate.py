@@ -7,10 +7,13 @@ redis_host = os.getenv("REDIS_HOST", "localhost")
 redis_port = os.getenv("REDIS_PORT", 6379)  # Added for flexibility
 redis_db = os.getenv("REDIS_DB", 0)  # Added for flexibility
 
+
 def get_redis_connection():
     return redis.Redis(host=redis_host, port=redis_port, db=redis_db)
 
+
 r = get_redis_connection()
+
 
 class Averages:
     @staticmethod
@@ -27,7 +30,7 @@ class Averages:
         average_temp = sum_of_temps / count if count > 0 else 0
         round_average_temp = round(average_temp, 2)
         return round_average_temp
-        
+
     @staticmethod
     def cal_average_humidity_for_location(city):
         count = r.hget(f"humidity_stats:{city}", "count")

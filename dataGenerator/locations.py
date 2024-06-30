@@ -1,5 +1,5 @@
 import random
-import time
+
 
 class Location:
     @staticmethod
@@ -12,6 +12,6 @@ class Location:
 
         for city in citys:
             rand_place = random.choice(places)
-            rand_location = f'{city} {rand_place}'
-            finaly_location.append(rand_location)    
+            rand_location = f"{city} {rand_place}"
+            finaly_location.append(rand_location)
         return finaly_location

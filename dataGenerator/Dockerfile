@@ -1,7 +1,6 @@
-# Use an official Python runtime as a parent image
 FROM python:3.11-alpine
-WORKDIR /generation
-COPY . /generation/
+WORKDIR /generator
+COPY . /generator/
 
 RUN pip install -r requirements.txt
 

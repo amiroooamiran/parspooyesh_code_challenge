@@ -12,23 +12,23 @@ services:
 
   generator:
     build:
-      context: ./dataGeneration/
+      context: ./dataGenerator/
     depends_on:
       - rabbitmq
     environment:
       RABBITMQ_HOST: rabbitmq
     volumes:
-      - ./dataGeneration:/generation
+      - ./dataGenerator:/generator
     networks:
       - my_network
   
-  api:
+  webservice:
     build:
-      context: ./APIs/ 
+      context: ./webService/ 
     depends_on:
       - mongodb
     volumes:
-      - ./APIs:/api    
+      - ./webService:/webservice    
     networks:
       - my_network
     ports:

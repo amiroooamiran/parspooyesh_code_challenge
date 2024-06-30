@@ -13,6 +13,7 @@ mongo_storage = MongoDBStorage()
 
 logging.basicConfig(level=logging.INFO)
 
+
 def _callback(data):
     outputData = data.copy()
 
@@ -32,7 +33,7 @@ def _callback(data):
     # Humidity average
     if not SaveAverage.redis_exists_humidity(f"humidity_stats:{city}"):
         SaveAverage.initialize_location_stats_humidity(city)
-        
+
     SaveAverage.update_location_stats_humidity(city, humidity)
     h_average = Averages.cal_average_humidity_for_location(city)
 
@@ -42,7 +43,7 @@ def _callback(data):
 
     anomalies = {}
     # cleaning / validation
-    if data['temperature'] > 60:
+    if data["temperature"] > 60:
         logging.warning(f"Temperature {data['temperature']} is too high, ignoring data")
         return  # ignore
 
@@ -54,8 +55,8 @@ def _callback(data):
         anomalies["temperature_drop"] = True
     else:
         anomalies["temperature_drop"] = False
-        
-    if data['wind speed'] > 30:
+
+    if data["wind speed"] > 30:
         anomalies["high_wind_speed"] = True
     else:
         anomalies["high_wind_speed"] = False
@@ -68,6 +69,7 @@ def _callback(data):
     except Exception as e:
         logging.error(f"Error saving data with retry: {e}")
 
+
 def callback(ch, method, properties, body):
     data = json.loads(body)
     try:
@@ -76,23 +78,27 @@ def callback(ch, method, properties, body):
         logging.error(f"Error processing message: {e}")
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
+
 def main():
     connection = None
     while True:
         try:
-            connection = pika.BlockingConnection(pika.ConnectionParameters('rabbitmq'))
+            connection = pika.BlockingConnection(pika.ConnectionParameters("rabbitmq"))
             channel = connection.channel()
-            channel.queue_declare(queue='sensor_data')
+            channel.queue_declare(queue="sensor_data")
 
-            channel.basic_consume(queue='sensor_data', on_message_callback=callback, auto_ack=False)
+            channel.basic_consume(
+                queue="sensor_data", on_message_callback=callback, auto_ack=False
+            )
 
-            logging.info('Waiting for messages. To exit press CTRL+C')
+            logging.info("Waiting for messages. To exit press CTRL+C")
             channel.start_consuming()
         except Exception as e:
             logging.error(f"Error: {e}")
             if connection:
                 connection.close()
             time.sleep(1)
+
 
 if __name__ == "__main__":
     main()
